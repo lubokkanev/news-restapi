@@ -4,26 +4,35 @@ const mongoClient = new MongoClient(url);
 const dbName = "crypto_apis";
 const collectionName = "news";
 
-async function addListing(listing) {
-    await mongoClient.db(dbName).collection(collectionName).insertOne(listing);
-}
+async function findListings(sort, title, date, id) {
+    let filter
+    if (id) {
+        filter = {id: id};
+    } else if (title && date) {
+        filter = {title: title, date: date};
+    } else if (title) {
+        filter = {title: title};
+    } else if (date) {
+        filter = {date: date};
+    } else {
+        filter = {};
+    }
 
-async function findListings() {
     return mongoClient
         .db(dbName)
         .collection(collectionName)
         .find()
-        .limit(10000)
+        .filter(filter)
+        .sort(sort)
         .toArray();
 }
 
 async function findListing(id) {
-    for (let listing of await findListings()) {
-        if (listing.id === id) {
-            return listing;
-        }
-    }
-    return null;
+    return findListings(null, null, null, id);
+}
+
+async function addListing(listing) {
+    await mongoClient.db(dbName).collection(collectionName).insertOne(listing);
 }
 
 async function updateListing(id, body) {
@@ -56,7 +65,7 @@ app.use(bodyParser())
     .use(router.allowedMethods());
 
 let date = require('date-and-time')
-let dateFormat = 'YYYY/MM/DD HH:mm:ss';
+let dateFormat = 'YYYY/MM/DD';
 
 async function validInput(body) {
     if (await findListing(body.id) != null) {
@@ -80,7 +89,7 @@ async function validInput(body) {
 }
 
 router.get('/', async ctx => {
-    ctx.body = await findListings();
+    ctx.body = await findListings(ctx.query['sort'], ctx.query['title'], ctx.query['date']);
 });
 
 router.get('/:id', async ctx => {
@@ -93,7 +102,7 @@ router.get('/:id', async ctx => {
             ctx.response.status = 404;
         }
     } catch (exception) {
-        ctx.response.status = 404;
+        ctx.response.status = 500;
     }
 });
 
