@@ -1,5 +1,5 @@
 const {MongoClient} = require("mongodb");
-const url = "mongodb://127.0.0.1:27017";
+const url = "mongodb+srv://lubokkanev:******@cluster0.ichjvik.mongodb.net/?retryWrites=true&w=majority";
 const mongoClient = new MongoClient(url);
 const dbName = "crypto_apis";
 const collectionName = "news";
@@ -108,7 +108,7 @@ router.get('/:id', async ctx => {
     try {
         let id = ctx.params.id;
         let listing;
-        if (Number.isNaN(Number.parseInt(id)) || (listing = await findListing(id)) != null) {
+        if (Number.isNaN(Number.parseInt(id)) || (listing = await findListing(id)).length !== 0) {
             ctx.body = listing;
         } else {
             ctx.response.status = 404;
@@ -159,7 +159,7 @@ router.delete('/:id', async ctx => {
     let id = ctx.request.params.id;
 
     try {
-        if (Number.isNaN(Number.parseInt(id)) || await findListing(id) == null) {
+        if (Number.isNaN(Number.parseInt(id)) || (await findListing(id)).length === 0) {
             ctx.response.status = 404;
         } else {
             await removeListing(id);
