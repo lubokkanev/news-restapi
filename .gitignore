@@ -2,3 +2,5 @@
 *.log
 *.iml
 node_modules/
+package.json
+package-lock.json
