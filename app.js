@@ -45,21 +45,44 @@ async function removeListing(id) {
 
 // ======== REST API ============
 
-const express = require('express');
-const app = express();
+let date = require('date-and-time')
+let dateFormat = 'YYYY/MM/DD HH:mm:ss';
+
+let express = require('express');
+let app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
+async function validInput(body) {
+    if (await findListing(body.id) != null) {
+        return false;
+    }
+
+    if (!body.id || !body.title || !body.date || !body.description) {
+        return false;
+    }
+
+    if (Number.isNaN(Number.parseInt(body.id))) {
+        return false;
+    }
+
+    let d = date.format(new Date(body.date), dateFormat);
+    if (!date.isValid(d.toString(), dateFormat)) {
+        return false;
+    }
+
+    return true;
+}
+
 app.get('/news', async function (request, response) {
-    let listings = await findListings();
-    response.json(listings);
+    response.json(await findListings());
 });
 
 app.get('/news/:id', async function (request, response) {
-    let newsId = request.params.id;
     try {
-        let listing = await findListing(newsId);
-        if (listing != null) {
+        let id = request.params.id;
+        let listing;
+        if (Number.isNaN(Number.parseInt(id)) || (listing = await findListing(id)) != null) {
             response.json(listing);
         } else {
             response.sendStatus(404);
@@ -71,20 +94,19 @@ app.get('/news/:id', async function (request, response) {
 
 app.post('/news', async function (request, response) {
     let body = request.body;
-    // xxx: add validation
+
     try {
-        let listing = await findListing(body.id);
-        if (listing != null) {
-            response.sendStatus(422);
-        } else {
-            addListing({
+        if (await validInput(body)) {
+            await addListing({
                 id: body.id,
-                date: body.date,
+                date: date.format(new Date(body.date), dateFormat),
                 title: body.title,
                 description: body.description,
                 text: body.text,
             });
             response.sendStatus(200);
+        } else {
+            response.sendStatus(422);
         }
     } catch (exception) {
         response.sendStatus(500);
@@ -92,28 +114,27 @@ app.post('/news', async function (request, response) {
 });
 
 app.put('/news/:id', async function (request, response) {
-    let body = request.body;
-    let id = request.params.id;
-
     try {
-        let listing = await findListing(id);
-        if (listing == null) {
+        let body = request.body;
+        let id = request.params.id;
+
+        if (Number.isNaN(Number.parseInt(id)) || await findListing(id) == null) {
             response.sendStatus(404);
         } else {
-            updateListing(id, body);
+            await updateListing(id, body);
             response.send(200);
         }
-    } catch (exception) {
+    } catch
+        (exception) {
         response.send(500);
     }
 });
 
 app.delete('/news/:id', async function (request, response) {
     let id = request.params.id;
-    
+
     try {
-        let listing = await findListing(id);
-        if (listing == null) {
+        if (Number.isNaN(Number.parseInt(id)) || await findListing(id) == null) {
             response.sendStatus(404);
         } else {
             removeListing(id);
@@ -124,4 +145,4 @@ app.delete('/news/:id', async function (request, response) {
     }
 });
 
-app.listen(8080); //to port on which the express server listen
+app.listen(8080);
