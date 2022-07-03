@@ -4,6 +4,7 @@
 * node.js 18
 * mongodb 4.7
 * koa 10.1.1
+* docker 20.10
 
 ## Setup
 ```
