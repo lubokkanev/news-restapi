@@ -5,9 +5,9 @@ const dbName = "crypto_apis";
 const collectionName = "news";
 
 async function findListings(sort, title, date, id) {
-    let filter
+    let filter;
     if (id) {
-        filter = {id: id};
+        filter = {_id: id};
     } else if (title && date) {
         filter = {title: title, date: date};
     } else if (title) {
@@ -44,11 +44,11 @@ async function updateListing(id, body) {
             date: body.date,
         }
     }
-    await mongoClient.db(dbName).collection(collectionName).updateOne({id: id}, newValues);
+    await mongoClient.db(dbName).collection(collectionName).updateOne({_id: id}, newValues);
 }
 
 async function removeListing(id) {
-    await mongoClient.db(dbName).collection(collectionName).deleteOne({id: id});
+    await mongoClient.db(dbName).collection(collectionName).deleteOne({_id: id});
 }
 
 // ======== REST API ============ // xxx: rm
@@ -60,23 +60,35 @@ const router = Router({
     prefix: '/news'
 });
 let bodyParser = require('koa-body');
+// let validate = require('koa-validation');
 app.use(bodyParser())
+    // .use(validate())
     .use(router.routes())
     .use(router.allowedMethods());
 
-let date = require('date-and-time')
+let date = require('date-and-time');
 let dateFormat = 'YYYY/MM/DD';
 
-async function validInput(body) {
-    if (await findListing(body.id) != null) {
+async function validInput(ctx, body) {
+    // ctx.validateBody({
+    //     _id: 'requiredNumeric',
+    //     date: 'date',
+    //     description: 'required|maxLength:100',
+    //     title: 'required|maxLength:20',
+    //     text: 'required'
+    // })
+    //
+    // return ctx.validationErrors != null; // xxx: finish
+
+    if ((await findListing(body._id)).length !== 0) {
         return false;
     }
 
-    if (!body.id || !body.title || !body.date || !body.description) {
+    if (!body._id || !body.title || !body.date || !body.description || !body.text) {
         return false;
     }
 
-    if (Number.isNaN(Number.parseInt(body.id))) {
+    if (Number.isNaN(Number.parseInt(body._id))) {
         return false;
     }
 
@@ -110,9 +122,9 @@ router.post('/', async ctx => {
     let body = ctx.request.body;
 
     try {
-        if (await validInput(body)) {
+        if (await validInput(ctx, body)) {
             await addListing({
-                id: body.id,
+                _id: body._id,
                 date: date.format(new Date(body.date), dateFormat),
                 title: body.title,
                 description: body.description,
@@ -138,8 +150,7 @@ router.put('/:id', async ctx => {
             await updateListing(id, body);
             ctx.response.status = 200;
         }
-    } catch
-        (exception) {
+    } catch (exception) {
         ctx.response.status = 500;
     }
 });
