@@ -1,5 +1,5 @@
 const {MongoClient} = require("mongodb");
-const url = "mongodb+srv://lubokkanev:******@cluster0.ichjvik.mongodb.net/?retryWrites=true&w=majority";
+const url = "mongodb+srv://lubokkanev:******@cluster0.ichjvik.mongodb.net/?retryWrites=true&w=majority"; // TODO: use a config file
 const mongoClient = new MongoClient(url);
 const dbName = "crypto_apis";
 const collectionName = "news";
@@ -51,8 +51,6 @@ async function removeListing(id) {
     await mongoClient.db(dbName).collection(collectionName).deleteOne({_id: id});
 }
 
-// ======== REST API ============ // xxx: rm
-
 const Koa = require('koa');
 const app = new Koa();
 const Router = require('koa-router');
@@ -78,7 +76,7 @@ async function validInput(ctx, body) {
     //     text: 'required'
     // })
     //
-    // return ctx.validationErrors != null; // xxx: finish
+    // return ctx.validationErrors != null; // TODO: use koa-validate
 
     if ((await findListing(body._id)).length !== 0) {
         return false;
