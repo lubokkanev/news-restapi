@@ -28,10 +28,10 @@ http://localhost:49060/news
 
 #### Sample REST calls
 ```
-curl -i -X POST http://0.0.0.0:49060/news -H "content-type:application/json" -d '{ "_id": "10", "date": "10-01-2022", "description": "descr", "text": "text", "title": "titleX" }'
+curl -i -X POST http://localhost:49060/news -H "content-type:application/json" -d '{ "_id": "10", "date": "10-01-2022", "description": "descr", "text": "text", "title": "titleX" }'
 ```
 
 ```
-curl -i -X GET http://0.0.0.0:49060/news/10 -H "content-type:application/json"
+curl -i -X GET http://localhost:49060/news/10 -H "content-type:application/json"
 ```
 
