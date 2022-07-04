@@ -1,6 +1,6 @@
 const {MongoClient} = require("mongodb");
-const url = "mongodb+srv://lubokkanev:******@cluster0.ichjvik.mongodb.net/?retryWrites=true&w=majority"; // TODO: use a config file
-const mongoClient = new MongoClient(url);
+const dbUrl = "mongodb+srv://lubokkanev:******@cluster0.ichjvik.mongodb.net/?retryWrites=true&w=majority"; // TODO: use a config file
+const mongoClient = new MongoClient(dbUrl);
 const dbName = "crypto_apis";
 const collectionName = "news";
 
