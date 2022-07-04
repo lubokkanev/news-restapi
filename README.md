@@ -10,16 +10,10 @@
 Set `dbUrl` in server.js
 
 Start your mongo DB
-```
-npm install
-```
-```
-docker build . -t <username>/news-restapi
-```
 
 ## Start
-```
-docker run -p 49060:8080 -d <username>/news-restapi
+```bash
+docker-compose up -d
 ```
 
 ## Test
@@ -27,11 +21,15 @@ docker run -p 49060:8080 -d <username>/news-restapi
 http://localhost:49060/news
 
 #### Sample REST calls
-```
+```bash
 curl -i -X POST http://localhost:49060/news -H "content-type:application/json" -d '{ "_id": "10", "date": "10-01-2022", "description": "descr", "text": "text", "title": "titleX" }'
 ```
 
-```
+```bash
 curl -i -X GET http://localhost:49060/news/10 -H "content-type:application/json"
 ```
+## Stop
 
+```bash
+docker-compose down
+```
