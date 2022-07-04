@@ -8,14 +8,16 @@ async function findListings(sort, title, date, id) {
     let filter;
     if (id) {
         filter = {_id: id};
-    } else if (title && date) {
-        filter = {title: title, date: date};
-    } else if (title) {
-        filter = {title: title};
-    } else if (date) {
-        filter = {date: date};
     } else {
-        filter = {};
+        if (title && date) {
+            filter = {title: title, date: date};
+        } else if (title) {
+            filter = {title: title};
+        } else if (date) {
+            filter = {date: date};
+        } else {
+            filter = {};
+        }
     }
 
     return mongoClient
@@ -67,7 +69,7 @@ app.use(bodyParser())
 let date = require('date-and-time');
 let dateFormat = 'YYYY/MM/DD';
 
-async function validInput(ctx, body) {
+async function validInput(id, ctx, body) {
     // ctx.validateBody({
     //     _id: 'requiredNumeric',
     //     date: 'date',
@@ -78,15 +80,11 @@ async function validInput(ctx, body) {
     //
     // return ctx.validationErrors != null; // TODO: use koa-validate
 
-    if ((await findListing(body._id)).length !== 0) {
+    if (!id || !body.title || !body.date || !body.description || !body.text) {
         return false;
     }
 
-    if (!body._id || !body.title || !body.date || !body.description || !body.text) {
-        return false;
-    }
-
-    if (Number.isNaN(Number.parseInt(body._id))) {
+    if (Number.isNaN(Number.parseInt(id))) {
         return false;
     }
 
@@ -120,7 +118,7 @@ router.post('/', async ctx => {
     let body = ctx.request.body;
 
     try {
-        if (await validInput(ctx, body)) {
+        if (await validInput(body._id, ctx, body) && (await findListing(body._id)).length === 0) {
             await addListing({
                 _id: body._id,
                 date: date.format(new Date(body.date), dateFormat),
@@ -142,11 +140,11 @@ router.put('/:id', async ctx => {
         let body = ctx.request.body;
         let id = ctx.request.params.id;
 
-        if (Number.isNaN(Number.parseInt(id)) || await findListing(id) == null) {
-            ctx.response.status = 404;
-        } else {
+        if (await validInput(id, ctx, body) && (await findListing(id)).length !== 0) {
             await updateListing(id, body);
             ctx.response.status = 200;
+        } else {
+            ctx.response.status = 404;
         }
     } catch (exception) {
         ctx.response.status = 500;
